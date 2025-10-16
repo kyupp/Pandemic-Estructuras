@@ -16,8 +16,8 @@ typedef struct Mapa {
 } Mapa;
 
 // Prototipos de funciones
-Pais *crear_pais(const char nombre[]);
+Pais *crear_pais(char nombre[]);
 Mapa *crear_mapa();
-void imprimir_mapa(const Mapa *mapa);
+void imprimir_mapa(Mapa *mapa);
 
 #endif
