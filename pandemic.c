@@ -171,7 +171,7 @@ Jugador *crear_jugador(char *nombre, Pais *paisActual) {
   return nuevo;
 }
 
-void moverJugador(Jugador *jugador) {
+void mover_jugador(Jugador *jugador) {
   Pais *paisActual = jugador->actual;
   printf("El jugador %s se encuentra en: %s \n1. %s \n2. %s\nA cúal país desea "
          "moverse: \n",
@@ -189,4 +189,88 @@ void moverJugador(Jugador *jugador) {
       printf("La opción digitada no es válida.");
     }
   } while (opc != 1 && opc != 2);
+}
+Proyecto *crear_proyecto(int clave, char *nombre, char *descripcion,
+                         TipoAccion tipo, char *paisesAplicados) {
+  Proyecto *proyecto = malloc(sizeof(Proyecto));
+  if (!proyecto)
+    return NULL;
+
+  proyecto->clave = clave;
+  strncpy(proyecto->nombre, nombre, sizeof(proyecto->nombre) - 1);
+  proyecto->nombre[sizeof(proyecto->nombre) - 1] = '\0';
+
+  strncpy(proyecto->descripcion, descripcion,
+          sizeof(proyecto->descripcion) - 1);
+  proyecto->descripcion[sizeof(proyecto->descripcion) - 1] = '\0';
+
+  strncpy(proyecto->paisesAplicados, paisesAplicados,
+          sizeof(proyecto->paisesAplicados) - 1);
+  proyecto->paisesAplicados[sizeof(proyecto->paisesAplicados) - 1] = '\0';
+
+  proyecto->tipo = tipo;
+  proyecto->sigt = NULL;
+
+  return proyecto;
+}
+
+unsigned int hash(int clave, int capacidad) { return clave % capacidad; }
+
+TablaHash *crear_tabla(int capacidad) {
+  TablaHash *tabla = malloc(sizeof(TablaHash));
+  if (!tabla)
+    return NULL;
+
+  tabla->capacidad = capacidad;
+  tabla->cantidad = 0;
+  tabla->tabla = calloc(capacidad, sizeof(Proyecto *));
+  if (!tabla->tabla) {
+    free(tabla);
+    return NULL;
+  }
+  return tabla;
+}
+
+void redimensionar_tabla(TablaHash *tabla) {
+  int nueva_capacidad = tabla->capacidad * 2;
+  Proyecto **nuevo_arreglo = calloc(nueva_capacidad, sizeof(Proyecto *));
+  if (!nuevo_arreglo)
+    return;
+
+  for (int i = 0; i < tabla->capacidad; i++) {
+    Proyecto *proyecto = tabla->tabla[i];
+    while (proyecto) {
+      Proyecto *sigt = proyecto->sigt;
+      unsigned int index = hash(proyecto->clave, nueva_capacidad);
+      proyecto->sigt = nuevo_arreglo[index];
+      nuevo_arreglo[index] = proyecto;
+      proyecto = sigt;
+    }
+  }
+
+  free(tabla->tabla);
+  tabla->tabla = nuevo_arreglo;
+  tabla->capacidad = nueva_capacidad;
+}
+
+void insertar_proyecto(TablaHash *tabla, int clave, Proyecto *proyecto) {
+  if ((float)tabla->cantidad / tabla->capacidad > 0.7) {
+    redimensionar_tabla(tabla);
+  }
+  unsigned int indice = hash(clave, tabla->capacidad);
+  proyecto->sigt = tabla->tabla[indice];
+  tabla->tabla[indice] = proyecto;
+  tabla->cantidad++;
+}
+
+Proyecto *buscar_proyecto(TablaHash *tabla, int clave, char *nombreProyecto) {
+  unsigned int indice = hash(clave, tabla->capacidad);
+  Proyecto *actual = tabla->tabla[indice];
+  while (actual) {
+    if (strcmp(actual->nombre, nombreProyecto) == 0) {
+      return actual;
+    }
+    actual = actual->sigt;
+  }
+  return NULL;
 }

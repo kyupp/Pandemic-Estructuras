@@ -91,11 +91,35 @@ int main() {
   printf("\n--- UBICACION DE LOS JUGADORES ---\n");
   printf("ONU esta en: %s\n", jugador_ONU->nombre);
   printf("Colectivo anarquista esta en: %s\n", jugador_colectivo->nombre);
-  moverJugador(jugador_ONU);
-  moverJugador(jugador_colectivo);
+  mover_jugador(jugador_ONU);
+  mover_jugador(jugador_colectivo);
 
   printf("Pasi onu: %s \n", jugador_ONU->actual->nombre);
   printf("Pasi Colectivo: %s \n: ", jugador_colectivo->actual->nombre);
+
+  TablaHash *tabla = crear_tabla(20);
+
+  insertar_proyecto(
+      tabla, 0,
+      crear_proyecto(
+          0, "Construcción de diques",
+          "Construir diques en zonas vulnerables para controlar desbordes.",
+          MEJORAR, "Mexico, Guatemala"));
+
+  insertar_proyecto(
+      tabla, 0,
+      crear_proyecto(
+          0, "Construcción de casas",
+          "Construir casas en zonas vulnerables para controlar pobreza.",
+          MEJORAR, "Mexico, Nicaragua"));
+
+  Proyecto *n_proyecto = buscar_proyecto(tabla, 0, "Construcción de diques");
+  Proyecto *n_proyecto2 = buscar_proyecto(tabla, 0, "Construcción de casas");
+
+  printf("%d , %s ,%s", n_proyecto->clave, n_proyecto->descripcion,
+         n_proyecto->nombre);
+  printf("%d , %s ,%s", n_proyecto2->clave, n_proyecto2->descripcion,
+         n_proyecto2->nombre);
 
   return 0;
 }
