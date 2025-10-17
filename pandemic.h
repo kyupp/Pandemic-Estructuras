@@ -3,19 +3,26 @@
 
 // Estructura que representa un país
 typedef struct Pais {
-    char nombre[50];
-    struct Pais *sigt;         // Siguiente país en la lista
-    struct Pais *ant;          // País anterior en la lista
-    struct Pais **vecinos;  // Vecinos
-    int num_vecinos;           // Cantidad de vecinos
-     int problemas[3]; // 0: Inundaciones, 1: Sequias, 2: Deforestacion, 3: Perdida de biodiversidad, 4: Desplazamiento poblacional
+  char nombre[50];
+  struct Pais *sigt;     // Siguiente país en la lista
+  struct Pais *ant;      // País anterior en la lista
+  struct Pais **vecinos; // Vecinos
+  int num_vecinos;       // Cantidad de vecinos
+  int problemas[3]; // 0: Inundaciones, 1: Sequias, 2: Deforestacion, 3: Perdida
+                    // de biodiversidad, 4: Desplazamiento poblacional
 } Pais;
 
 // Estructura que representa el mapa (lista doblemente enlazada)
 typedef struct Mapa {
-    Pais *inicio; // Primer país del mapa
-    Pais *final; // Último país del mapa
+  Pais *inicio; // Primer país del mapa
+  Pais *final;  // Último país del mapa
 } Mapa;
+
+// Estructura Jugador
+typedef struct Jugador {
+  char nombre[50];
+  struct Pais *actual;
+} Jugador;
 
 // Prototipos
 Pais *crear_pais(char nombre[]);
@@ -27,5 +34,10 @@ void imprimir_mapa(Mapa *mapa);
 void imprimir_vecinos(Pais *pais);
 Pais **asignar_problemas(Mapa *mapa); // devuelve los 9 países seleccionados
 void imprimir_problemas_seleccionados(Pais **seleccionados, int n);
+
+// Prototipos Jugador
+Jugador *crear_jugador(char nombre[], Pais *paisActual);
+void moverJugador(Jugador *jugador);
+void aplicarrProyecto(Pais *paisActual);
 
 #endif
