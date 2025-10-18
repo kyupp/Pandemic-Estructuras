@@ -111,21 +111,8 @@ int main() {
                                          MEJORAR,
                                          "Nicaragua, El Salvador, Honduras"));
 
-  // printf("%d , %s ,%s", n_proyecto->clave, n_proyecto->descripcion,
-  //        n_proyecto->nombre);
-  // printf("%d , %s ,%s", n_proyecto2->clave, n_proyecto2->descripcion,
-  //        n_proyecto2->nombre);
-
-  // for (int turno = 1; turno <= 10; turno++) {
-  //   printf("\n=== TURNO %d ===\n", turno);
-  //   turno_jugador(jugador_ONU, tabla, mapa);
-  //   turno_jugador(jugador_colectivo, tabla, mapa);
-  //   aumentar_problemas(mapa); // se incrementan los problemas en 3 paises al
-  //   azar
-  // }
-
   printf("\n=== INICIO DEL JUEGO ===\n");
-  for (int turno = 1; turno <= 3;
+  for (int turno = 1; turno <= 3 && ganar(mapa) && perder(mapa);
        turno++) { // podés ajustar el número de turnos
     printf("\n===== TURNO %d =====\n", turno);
     turno_jugador(jugador_ONU, tabla, mapa);
