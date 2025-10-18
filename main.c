@@ -112,7 +112,7 @@ int main() {
                                          "Nicaragua, El Salvador, Honduras"));
 
   printf("\n=== INICIO DEL JUEGO ===\n");
-  for (int turno = 1; turno <= 3 && ganar(mapa) && perder(mapa);
+  for (int turno = 1; turno <= 3 && ganar(mapa) != 1 && perder(mapa) != 1;
        turno++) { // podés ajustar el número de turnos
     printf("\n===== TURNO %d =====\n", turno);
     turno_jugador(jugador_ONU, tabla, mapa);
