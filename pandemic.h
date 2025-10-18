@@ -88,6 +88,7 @@ void mostrar_proyectos(TablaHash *tabla);
 
 // Comprobaciones Ganar - Perder
 int ganar(Mapa *mapa);
+int perder(Mapa *mapa);
 void paisPerdido(Mapa *mapa);
 
 #endif

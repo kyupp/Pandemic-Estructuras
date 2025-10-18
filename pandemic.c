@@ -516,6 +516,18 @@ int ganar(Mapa *mapa) {
 
   int cantidad_paises = cantidadPaises(mapa);
   if (contador >= cantidad_paises) {
+    printf("Ganaste, lograste solucionar un aspecto en todos los paises.");
+    return 1;
+  }
+
+  return 0;
+}
+
+int perder(Mapa *mapa) {
+  int cantidad_paises = cantidadPaises(mapa);
+
+  if (cantidad_paises <= 3) {
+    printf("Perdiste, quedaron menos de 3 paises.");
     return 1;
   }
 
