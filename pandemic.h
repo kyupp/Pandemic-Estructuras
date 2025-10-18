@@ -59,6 +59,7 @@ void imprimir_mapa(Mapa *mapa);
 void imprimir_vecinos(Pais *pais);
 Pais **asignar_problemas(Mapa *mapa); // devuelve los 9 países seleccionados
 void imprimir_problemas_seleccionados(Pais **seleccionados, int n);
+int cantidadPaises(Mapa *mapa);
 
 // Prototipos Jugador
 Jugador *crear_jugador(char nombre[], Pais *paisActual);
@@ -84,5 +85,9 @@ void turno_jugador(Jugador *jugador, TablaHash *tabla, Mapa *mapa);
 void aumentar_problemas(Mapa *mapa);
 void mostrar_estado_pais(Pais *pais);
 void mostrar_proyectos(TablaHash *tabla);
+
+// Comprobaciones Ganar - Perder
+int ganar(Mapa *mapa);
+void paisPerdido(Mapa *mapa);
 
 #endif

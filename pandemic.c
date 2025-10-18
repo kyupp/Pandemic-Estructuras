@@ -489,3 +489,35 @@ void mostrar_estado_pais(Pais *pais) {
   }
   printf("===============================\n");
 }
+
+int cantidadPaises(Mapa *mapa) {
+  Pais *pais_actual = mapa->inicio;
+  int contador = 0;
+  while (pais_actual->sigt != NULL) {
+    contador++;
+    pais_actual = pais_actual->sigt;
+  }
+
+  return contador;
+}
+
+int ganar(Mapa *mapa) {
+  Pais *pais_actual = mapa->inicio;
+  int contador = 0;
+  while (pais_actual->sigt != NULL) {
+    for (int i = 0; i < 5; i++) {
+      if (pais_actual->problemas[i] == 0) {
+        contador++;
+        break;
+      }
+    }
+    pais_actual = pais_actual->sigt;
+  }
+
+  int cantidad_paises = cantidadPaises(mapa);
+  if (contador >= cantidad_paises) {
+    return 1;
+  }
+
+  return 0;
+}
