@@ -87,39 +87,51 @@ int main() {
       jugador_colectivo->actual = jugador_colectivo->actual->sigt;
   } while (jugador_colectivo->actual == jugador_ONU->actual);
 
-  // donde están los jugadores
-  printf("\n--- UBICACION DE LOS JUGADORES ---\n");
-  printf("ONU esta en: %s\n", jugador_ONU->nombre);
-  printf("Colectivo anarquista esta en: %s\n", jugador_colectivo->nombre);
-  mover_jugador(jugador_ONU);
-  mover_jugador(jugador_colectivo);
+  TablaHash *tabla = crear_tabla(10);
 
-  printf("Pasi onu: %s \n", jugador_ONU->actual->nombre);
-  printf("Pasi Colectivo: %s \n: ", jugador_colectivo->actual->nombre);
+  // Ejemplo de insercion con texto como llave
+  insertar_proyecto_texto(
+      tabla, "Inundaciones",
+      crear_proyecto("Construccion de diques",
+                     "Construir diques para evitar desbordamientos en rios "
+                     "cercanos a poblaciones.",
+                     MEJORAR, "Mexico, Guatemala, Honduras"));
 
-  TablaHash *tabla = crear_tabla(20);
+  insertar_proyecto_texto(
+      tabla, "Inundaciones",
+      crear_proyecto("Reforestacion de cuencas",
+                     "Reforestar zonas altas para controlar escorrentia y "
+                     "prevenir inundaciones.",
+                     MEJORAR, "Costa Rica, Panama"));
 
-  insertar_proyecto(
-      tabla, 0,
-      crear_proyecto(
-          0, "Construcción de diques",
-          "Construir diques en zonas vulnerables para controlar desbordes.",
-          MEJORAR, "Mexico, Guatemala"));
+  insertar_proyecto_texto(tabla, "Sequias",
+                          crear_proyecto("Captacion de agua pluvial",
+                                         "Implementar sistemas de recoleccion "
+                                         "y almacenamiento de agua de lluvia.",
+                                         MEJORAR,
+                                         "Nicaragua, El Salvador, Honduras"));
 
-  insertar_proyecto(
-      tabla, 0,
-      crear_proyecto(
-          0, "Construcción de casas",
-          "Construir casas en zonas vulnerables para controlar pobreza.",
-          MEJORAR, "Mexico, Nicaragua"));
+  // printf("%d , %s ,%s", n_proyecto->clave, n_proyecto->descripcion,
+  //        n_proyecto->nombre);
+  // printf("%d , %s ,%s", n_proyecto2->clave, n_proyecto2->descripcion,
+  //        n_proyecto2->nombre);
 
-  Proyecto *n_proyecto = buscar_proyecto(tabla, 0, "Construcción de diques");
-  Proyecto *n_proyecto2 = buscar_proyecto(tabla, 0, "Construcción de casas");
+  // for (int turno = 1; turno <= 10; turno++) {
+  //   printf("\n=== TURNO %d ===\n", turno);
+  //   turno_jugador(jugador_ONU, tabla, mapa);
+  //   turno_jugador(jugador_colectivo, tabla, mapa);
+  //   aumentar_problemas(mapa); // se incrementan los problemas en 3 paises al
+  //   azar
+  // }
 
-  printf("%d , %s ,%s", n_proyecto->clave, n_proyecto->descripcion,
-         n_proyecto->nombre);
-  printf("%d , %s ,%s", n_proyecto2->clave, n_proyecto2->descripcion,
-         n_proyecto2->nombre);
+  printf("\n=== INICIO DEL JUEGO ===\n");
+  for (int turno = 1; turno <= 3;
+       turno++) { // podés ajustar el número de turnos
+    printf("\n===== TURNO %d =====\n", turno);
+    turno_jugador(jugador_ONU, tabla, mapa);
+    turno_jugador(jugador_colectivo, tabla, mapa);
+    aumentar_problemas(mapa);
+  }
 
   return 0;
 }

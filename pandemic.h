@@ -11,7 +11,7 @@ typedef struct Pais {
   struct Pais *ant;      // País anterior en la lista
   struct Pais **vecinos; // Vecinos
   int num_vecinos;       // Cantidad de vecinos
-  int problemas[3]; // 0: Inundaciones, 1: Sequias, 2: Deforestacion, 3: Perdida
+  int problemas[5]; // 0: Inundaciones, 1: Sequias, 2: Deforestacion, 3: Perdida
                     // de biodiversidad, 4: Desplazamiento poblacional
 } Pais;
 
@@ -31,10 +31,10 @@ typedef enum { MEJORAR, EMPEORAR } TipoAccion;
 
 // Estructura proyecto
 typedef struct Proyecto {
-  int clave;
   char nombre[100];
   char descripcion[300];
   char paisesAplicados[200];
+  char problematica[50];
   TipoAccion tipo;
   struct Proyecto *sigt;
 } Proyecto;
@@ -65,19 +65,24 @@ Jugador *crear_jugador(char nombre[], Pais *paisActual);
 void mover_jugador(Jugador *jugador);
 
 // Prototipos Proyecto
-Proyecto *crear_proyecto(int clave, char *nombre, char *descripcion,
-                         TipoAccion tipo, char *paisesAplicados);
+Proyecto *crear_proyecto(char *nombre, char *descripcion, TipoAccion tipo,
+                         char *paisesAplicados);
 
 // Prototipos Hash
-unsigned int hash(int clave, int capacidad);
 TablaHash *crear_tabla(int capacidad);
 void redimensionar_tabla(TablaHash *tabla);
-void insertar_proyecto(TablaHash *tabla, int clave, Proyecto *proyecto);
-Proyecto *buscar_proyecto(TablaHash *tabla, int clave, char *nombreProyecto);
 void aplicar_proyecto(Jugador *jugador, Proyecto *proyecto);
+void imprimir_tabla_hash(TablaHash *tabla);
+
+// Versión de hash con llave de texto
+unsigned int hash(char *clave, int capacidad);
+void insertar_proyecto_texto(TablaHash *tabla, char *clave, Proyecto *proyecto);
+Proyecto *buscar_proyecto(TablaHash *tabla, char *nombreProyecto);
 
 // Funciones de Juego
 void turno_jugador(Jugador *jugador, TablaHash *tabla, Mapa *mapa);
 void aumentar_problemas(Mapa *mapa);
+void mostrar_estado_pais(Pais *pais);
+void mostrar_proyectos(TablaHash *tabla);
 
 #endif
