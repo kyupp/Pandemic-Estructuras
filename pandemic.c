@@ -4,21 +4,21 @@
 #include <string.h>
 #include <time.h>
 
-// Crear un país dinámicamente
+//----------------------------------------------
+//            FUNCIONES DE MAPA
+//----------------------------------------------
 Pais *crear_pais(char nombre[]) {
   Pais *nuevo = (Pais *)malloc(sizeof(Pais));
   strcpy(nuevo->nombre, nombre);
   nuevo->sigt = NULL;
   nuevo->ant = NULL;
-  nuevo->vecinos = NULL; // inicialmente no tiene vecinos
+  nuevo->vecinos = NULL;
   nuevo->num_vecinos = 0;
-  // inicializar problemas a cero
   for (int i = 0; i < 5; i++)
     nuevo->problemas[i] = 0;
   return nuevo;
 }
 
-// crear mapa
 Mapa *crear_mapa() {
   Mapa *mapa = (Mapa *)malloc(sizeof(Mapa));
   mapa->inicio = NULL;
@@ -26,7 +26,6 @@ Mapa *crear_mapa() {
   return mapa;
 }
 
-// agregar país a la lista doblemente enlazada
 void agregar_pais(Mapa *mapa, char nombre[]) {
   Pais *nuevo = crear_pais(nombre);
   if (mapa->inicio == NULL) {
@@ -39,7 +38,55 @@ void agregar_pais(Mapa *mapa, char nombre[]) {
   }
 }
 
-// buscar país por nombre
+void eliminar_pais(Mapa *mapa) {
+  Pais *pais = mapa->inicio;
+
+  while (pais) {
+    int eliminar =
+        1; // Asumimos que debe eliminarse, salvo que se demuestre lo contrario
+
+    // Verificar si TODOS los problemas son >= 3
+    for (int i = 0; i < 5; i++) {
+      if (pais->problemas[i] < 3) {
+        eliminar = 0; // Si alguno es menor a 3, no se elimina
+        break;
+      }
+    }
+
+    // Guardar siguiente antes de eliminar
+    Pais *siguiente = pais->sigt;
+
+    // Si debe eliminarse
+    if (eliminar) {
+      printf(
+          "País eliminado: %s (todos sus aspectos alcanzaron nivel 3 o más)\n",
+          pais->nombre);
+
+      // Caso 1: primero
+      if (pais == mapa->inicio) {
+        mapa->inicio = pais->sigt;
+        if (mapa->inicio)
+          mapa->inicio->ant = NULL;
+      }
+      // Caso 2: último
+      else if (pais == mapa->final) {
+        mapa->final = pais->ant;
+        if (mapa->final)
+          mapa->final->sigt = NULL;
+      }
+      // Caso 3: intermedio
+      else {
+        pais->ant->sigt = pais->sigt;
+        pais->sigt->ant = pais->ant;
+      }
+
+      free(pais);
+    }
+
+    // Avanzar al siguiente
+    pais = siguiente;
+  }
+}
 Pais *buscar_pais(Mapa *mapa, char nombre[]) {
   Pais *actual = mapa->inicio;
   while (actual != NULL) {
@@ -50,486 +97,357 @@ Pais *buscar_pais(Mapa *mapa, char nombre[]) {
   return NULL;
 }
 
-// agregar vecino a un país
 void agregar_vecino(Pais *pais, Pais *vecino) {
-  if (pais->vecinos == NULL) {
-    pais->vecinos = (Pais **)malloc(sizeof(Pais *));
-    pais->vecinos[0] = vecino;
-    pais->num_vecinos = 1;
-  } else {
-    pais->num_vecinos++;
-    pais->vecinos =
-        (Pais **)realloc(pais->vecinos, pais->num_vecinos * sizeof(Pais *));
-    pais->vecinos[pais->num_vecinos - 1] = vecino;
-  }
+  pais->num_vecinos++;
+  pais->vecinos = realloc(pais->vecinos, pais->num_vecinos * sizeof(Pais *));
+  pais->vecinos[pais->num_vecinos - 1] = vecino;
 }
 
-// imprimir mapa con vecinos
 void imprimir_mapa(Mapa *mapa) {
   Pais *actual = mapa->inicio;
-  printf("--- MAPA DE PAISES Y SUS VECINOS ---\n\n");
+  printf("\n--- MAPA DE PAISES Y SUS VECINOS ---\n");
   while (actual != NULL) {
-    printf("Pais: %s\n", actual->nombre);
-    if (actual->vecinos != NULL && actual->num_vecinos > 0) {
-      printf("Vecinos: ");
+    printf("Pais: %s\nVecinos: ", actual->nombre);
+    if (actual->num_vecinos == 0)
+      printf("Ninguno");
+    else {
       for (int i = 0; i < actual->num_vecinos; i++) {
         printf("%s", actual->vecinos[i]->nombre);
         if (i < actual->num_vecinos - 1)
           printf(", ");
       }
-      printf("\n");
-    } else {
-      printf("Vecinos: Ninguno\n");
     }
-    printf("\n");
+    printf("\n\n");
     actual = actual->sigt;
   }
 }
 
-// asignar problemas aleatorios a 9 países
 Pais **asignar_problemas(Mapa *mapa) {
-  Pais **seleccionados = (Pais **)malloc(9 * sizeof(Pais *));
-  int count = 0;
-  int total_paises = 0;
-
-  // Contar países
+  Pais **seleccionados = malloc(9 * sizeof(Pais *));
+  int total = 0;
   Pais *actual = mapa->inicio;
-  while (actual != NULL) {
-    total_paises++;
+  while (actual) {
+    total++;
     actual = actual->sigt;
   }
 
-  if (total_paises < 9)
+  if (total < 9)
     return NULL;
 
-  // Seleccionar 9 países aleatorios únicos
+  int count = 0;
   while (count < 9) {
-    int n = rand() % total_paises;
+    int n = rand() % total;
     actual = mapa->inicio;
     for (int i = 0; i < n; i++)
       actual = actual->sigt;
 
-    // Verificar repetidos
     int repetido = 0;
-    for (int j = 0; j < count; j++) {
-      if (seleccionados[j] == actual) {
+    for (int j = 0; j < count; j++)
+      if (seleccionados[j] == actual)
         repetido = 1;
-        break;
-      }
-    }
-    if (!repetido) {
-      seleccionados[count] = actual;
-      count++;
-    }
+
+    if (!repetido)
+      seleccionados[count++] = actual;
   }
 
-  // Asignar valores según indicaciones
-  for (int i = 0; i < 9; i++) {
-    if (i < 3) {                          // Primeros 3: alto
-      seleccionados[i]->problemas[0] = 3; // inundaciones
-      seleccionados[i]->problemas[1] = 2; // sequias
-      seleccionados[i]->problemas[2] = 0; // deforestación
-    } else if (i < 6) {                   // Siguientes 3: medio
-      seleccionados[i]->problemas[0] = 2;
-      seleccionados[i]->problemas[1] = 1;
-      seleccionados[i]->problemas[2] = 0;
-    } else { // Últimos 3: bajo
-      seleccionados[i]->problemas[0] = 1;
-      seleccionados[i]->problemas[1] = 1;
-      seleccionados[i]->problemas[2] = 1;
-    }
-
-    // los otros dos problemas opcionales aleatorios
-    seleccionados[i]->problemas[3] = rand() % 4; // perdida de biodiversidad
-    seleccionados[i]->problemas[4] = rand() % 4; // desplazamiento de población
-  }
+  for (int i = 0; i < 9; i++)
+    for (int j = 0; j < 5; j++)
+      seleccionados[i]->problemas[j] = rand() % 4;
 
   return seleccionados;
 }
 
 void imprimir_problemas_seleccionados(Pais **seleccionados, int n) {
-  const char *nombres_problemas[5] = {
-      "Inundaciones", "Sequias", "Deforestacion", "Perdida de biodiversidad",
-      "Desplazamiento de poblacion"};
-
-  printf("--- PAISES SELECCIONADOS CON PROBLEMAS ---\n\n");
+  const char *nombres[] = {"Inundaciones", "Sequias", "Deforestacion",
+                           "Perdida de biodiversidad",
+                           "Desplazamiento de poblacion"};
+  printf("\n--- PAISES SELECCIONADOS CON PROBLEMAS ---\n\n");
   for (int i = 0; i < n; i++) {
     printf("Pais: %s\n", seleccionados[i]->nombre);
-    for (int j = 0; j < 5; j++) {
-      printf("%s: %d", nombres_problemas[j], seleccionados[i]->problemas[j]);
-      if (j < 4)
-        printf(", ");
-    }
-    printf("\n\n");
+    for (int j = 0; j < 5; j++)
+      printf("%s: %d%s", nombres[j], seleccionados[i]->problemas[j],
+             j < 4 ? ", " : "\n\n");
   }
 }
 
+int cantidad_paises(Mapa *mapa) {
+  int c = 0;
+  for (Pais *p = mapa->inicio; p; p = p->sigt)
+    c++;
+  return c;
+}
+
+//----------------------------------------------
+//            FUNCIONES DE JUGADOR
+//----------------------------------------------
 Jugador *crear_jugador(char *nombre, Pais *paisActual) {
-  Jugador *nuevo = (Jugador *)malloc(sizeof(Jugador));
+  Jugador *nuevo = malloc(sizeof(Jugador));
   strcpy(nuevo->nombre, nombre);
   nuevo->actual = paisActual;
   return nuevo;
 }
 
 void mover_jugador(Jugador *jugador) {
-  Pais *paisActual = jugador->actual;
-  int opc = 0;
+  Pais *actual = jugador->actual;
+  printf("\nJugador %s se encuentra en %s\n", jugador->nombre, actual->nombre);
+  if (actual->ant)
+    printf("1. Moverse a %s\n", actual->ant->nombre);
+  if (actual->sigt)
+    printf("2. Moverse a %s\n", actual->sigt->nombre);
 
-  printf("El jugador %s se encuentra en: %s\n", jugador->nombre,
-         paisActual->nombre);
-
-  if (paisActual->sigt != NULL)
-    printf("1. Moverse a %s\n", paisActual->sigt->nombre);
-  if (paisActual->ant != NULL)
-    printf("2. Moverse a %s\n", paisActual->ant->nombre);
-
-  printf("Seleccione una opcion: ");
-
-  do {
-    scanf("%d", &opc);
-
-    if (opc == 1 && paisActual->sigt != NULL) {
-      jugador->actual = paisActual->sigt;
-    } else if (opc == 2 && paisActual->ant != NULL) {
-      jugador->actual = paisActual->ant;
-    } else {
-      printf("Opcion invalida. Intente de nuevo: ");
-      opc = 0;
-    }
-  } while (opc == 0);
+  int opcion = 0;
+  printf("Seleccione opcion: ");
+  scanf("%d", &opcion);
+  if (opcion == 1 && actual->ant)
+    jugador->actual = actual->ant;
+  else if (opcion == 2 && actual->sigt)
+    jugador->actual = actual->sigt;
+  else
+    printf("Opcion invalida.\n");
 }
 
+//----------------------------------------------
+//            FUNCIONES DE PROYECTO
+//----------------------------------------------
 Proyecto *crear_proyecto(char *nombre, char *descripcion, TipoAccion tipo,
-                         char *paisesAplicados) {
-  Proyecto *proyecto = malloc(sizeof(Proyecto));
-  if (!proyecto)
+                         char *paisesAplicados, char *problematica,
+                         char *bibliografia) {
+  Proyecto *p = malloc(sizeof(Proyecto));
+  if (!p)
     return NULL;
 
-  strncpy(proyecto->nombre, nombre, sizeof(proyecto->nombre) - 1);
-  proyecto->nombre[sizeof(proyecto->nombre) - 1] = '\0';
+  strncpy(p->nombre, nombre, sizeof(p->nombre) - 1);
+  strncpy(p->descripcion, descripcion, sizeof(p->descripcion) - 1);
+  strncpy(p->paisesAplicados, paisesAplicados, sizeof(p->paisesAplicados) - 1);
+  strncpy(p->problematica, problematica, sizeof(p->problematica) - 1);
+  strncpy(p->bibliografia, bibliografia, sizeof(p->bibliografia) - 1);
 
-  strncpy(proyecto->descripcion, descripcion,
-          sizeof(proyecto->descripcion) - 1);
-  proyecto->descripcion[sizeof(proyecto->descripcion) - 1] = '\0';
+  p->nombre[sizeof(p->nombre) - 1] = '\0';
+  p->descripcion[sizeof(p->descripcion) - 1] = '\0';
+  p->paisesAplicados[sizeof(p->paisesAplicados) - 1] = '\0';
+  p->problematica[sizeof(p->problematica) - 1] = '\0';
+  p->bibliografia[sizeof(p->bibliografia) - 1] = '\0';
+  p->tipo = tipo;
+  p->sigt = NULL;
 
-  strncpy(proyecto->paisesAplicados, paisesAplicados,
-          sizeof(proyecto->paisesAplicados) - 1);
-  proyecto->paisesAplicados[sizeof(proyecto->paisesAplicados) - 1] = '\0';
+  return p;
+}
 
-  proyecto->tipo = tipo;
-  proyecto->sigt = NULL;
-
-  return proyecto;
+//----------------------------------------------
+//            FUNCIONES HASH
+//----------------------------------------------
+unsigned int hash(char *texto, int capacidad) {
+  unsigned int h = 0;
+  for (int i = 0; texto[i] != '\0'; i++)
+    h = 31 * h + (unsigned char)texto[i];
+  return h % capacidad;
 }
 
 TablaHash *crear_tabla(int capacidad) {
   TablaHash *tabla = malloc(sizeof(TablaHash));
-  if (!tabla)
-    return NULL;
-
   tabla->capacidad = capacidad;
   tabla->cantidad = 0;
   tabla->tabla = calloc(capacidad, sizeof(Proyecto *));
-  if (!tabla->tabla) {
-    free(tabla);
-    return NULL;
-  }
   return tabla;
 }
 
 void redimensionar_tabla(TablaHash *tabla) {
-  int nueva_capacidad = tabla->capacidad * 2;
-  Proyecto **nuevo_arreglo = calloc(nueva_capacidad, sizeof(Proyecto *));
-  if (!nuevo_arreglo)
-    return;
-
+  int nueva_cap = tabla->capacidad * 2;
+  Proyecto **nuevo = calloc(nueva_cap, sizeof(Proyecto *));
   for (int i = 0; i < tabla->capacidad; i++) {
-    Proyecto *proyecto = tabla->tabla[i];
-    while (proyecto) {
-      Proyecto *sigt = proyecto->sigt;
-      unsigned int index = hash(proyecto->nombre, nueva_capacidad);
-      proyecto->sigt = nuevo_arreglo[index];
-      nuevo_arreglo[index] = proyecto;
-      proyecto = sigt;
+    Proyecto *actual = tabla->tabla[i];
+    while (actual) {
+      Proyecto *sig = actual->sigt;
+      unsigned int indice = hash(actual->problematica, nueva_cap);
+      actual->sigt = nuevo[indice];
+      nuevo[indice] = actual;
+      actual = sig;
     }
   }
-
   free(tabla->tabla);
-  tabla->tabla = nuevo_arreglo;
-  tabla->capacidad = nueva_capacidad;
+  tabla->tabla = nuevo;
+  tabla->capacidad = nueva_cap;
 }
 
-void insertar_proyecto(TablaHash *tabla, int clave, Proyecto *proyecto) {
-  if ((float)tabla->cantidad / tabla->capacidad > 0.7) {
+void insertar_proyecto_texto(TablaHash *tabla, char *clave,
+                             Proyecto *proyecto) {
+  if ((float)tabla->cantidad / tabla->capacidad > 0.7)
     redimensionar_tabla(tabla);
-  }
-  unsigned int indice = hash(proyecto->nombre, tabla->capacidad);
-  proyecto->sigt = tabla->tabla[indice];
-  tabla->tabla[indice] = proyecto;
+  unsigned int i = hash(clave, tabla->capacidad);
+  proyecto->sigt = tabla->tabla[i];
+  tabla->tabla[i] = proyecto;
   tabla->cantidad++;
+}
+
+Proyecto *buscar_proyecto(TablaHash *tabla, char *nombreProyecto) {
+  for (int i = 0; i < tabla->capacidad; i++) {
+    Proyecto *actual = tabla->tabla[i];
+    while (actual) {
+      if (strcmp(actual->nombre, nombreProyecto) == 0)
+        return actual;
+      actual = actual->sigt;
+    }
+  }
+  return NULL;
 }
 
 void imprimir_tabla_hash(TablaHash *tabla) {
   printf("\n--- PROYECTOS REGISTRADOS ---\n");
   for (int i = 0; i < tabla->capacidad; i++) {
-    Proyecto *actual = tabla->tabla[i];
-    if (actual != NULL) {
+    Proyecto *p = tabla->tabla[i];
+    if (p) {
       printf("\n[Indice %d]\n", i);
-      while (actual) {
-        printf("Nombre: %s\n", actual->nombre);
-        printf("Descripción: %s\n", actual->descripcion);
-        printf("Países aplicados: %s\n", actual->paisesAplicados);
-        printf("Tipo: %s\n", actual->tipo == MEJORAR ? "MEJORAR" : "EMPEORAR");
-        printf("-----------------------------\n");
-        actual = actual->sigt;
+      while (p) {
+        printf("Problematica: %s\nNombre: %s\nDescripcion: %s\nPaises: %s\n",
+               p->problematica, p->nombre, p->descripcion, p->paisesAplicados);
+        printf("Bibliografia: %s\n\n", p->bibliografia);
+        p = p->sigt;
       }
     }
   }
-}
-
-// --------------------------------------------------------
-// HASH CON LLAVE DE TEXTO
-// --------------------------------------------------------
-
-// Calcula el hash de una cadena usando multiplicador primo (31)
-
-// Inserta proyecto usando el nombre como llave de texto
-void insertar_proyecto_texto(TablaHash *tabla, char *clave,
-                             Proyecto *proyecto) {
-  if ((float)tabla->cantidad / tabla->capacidad > 0.7) {
-    redimensionar_tabla(tabla);
-  }
-
-  unsigned int indice = hash(clave, tabla->capacidad);
-  proyecto->sigt = tabla->tabla[indice];
-  tabla->tabla[indice] = proyecto;
-  tabla->cantidad++;
-}
-
-// Busca proyecto usando texto como llave
-Proyecto *buscar_proyecto(TablaHash *tabla, char *nombreProyecto) {
-  for (int i = 0; i < tabla->capacidad; i++) {
-    Proyecto *actual = tabla->tabla[i];
-    while (actual != NULL) {
-      if (strcmp(actual->nombre, nombreProyecto) == 0) {
-        return actual;
-      }
-      actual = actual->sigt;
-    }
-  }
-  return NULL; // no encontrado
-}
-
-void turno_jugador(Jugador *jugador, TablaHash *tabla, Mapa *mapa) {
-  int acciones = 4;
-  int opcion;
-
-  while (acciones > 0) {
-    printf("\nTurno de %s (%s) - Acciones restantes: %d\n", jugador->nombre,
-           jugador->actual->nombre, acciones);
-    printf("1. Moverse a un pais vecino\n");
-    printf("2. Consultar estado del pais actual\n");
-    printf("3. Implementar proyecto\n");
-    printf("Seleccione una accion: ");
-    scanf("%d", &opcion);
-
-    if (opcion == 1) {
-      mover_jugador(jugador);
-      acciones--;
-    } else if (opcion == 2) {
-      mostrar_estado_pais(jugador->actual);
-    } else if (opcion == 3) {
-      mostrar_proyectos(tabla);
-      char nombreProyecto[100];
-      printf("Ingrese el nombre exacto del proyecto que desea aplicar: ");
-      scanf(" %[^\n]", nombreProyecto);
-      Proyecto *p = buscar_proyecto(tabla, nombreProyecto);
-      if (p) {
-        aplicar_proyecto(jugador, p);
-      } else {
-        printf("Proyecto no encontrado.\n");
-      }
-      acciones--;
-    } else {
-      printf("Opcion invalida.\n");
-    }
-  }
-}
-
-// Devuelve el nombre del problema según su índice
-const char *nombreProblema(int tipo) {
-  switch (tipo) {
-  case 0:
-    return "Inundaciones";
-  case 1:
-    return "Sequias";
-  case 2:
-    return "Deforestacion";
-  case 3:
-    return "Perdida de biodiversidad";
-  case 4:
-    return "Desplazamiento de poblacion";
-  default:
-    return "Desconocido";
-  }
-}
-
-void aumentar_problemas(Mapa *mapa) {
-  int total = 0;
-  Pais *actual = mapa->inicio;
-
-  // Contar países
-  while (actual != NULL) {
-    total++;
-    actual = actual->sigt;
-  }
-
-  // Incrementar problemas en 3 países aleatorios
-  for (int i = 0; i < 3; i++) {
-    int random_index = rand() % total;
-    actual = mapa->inicio;
-    for (int j = 0; j < random_index; j++)
-      actual = actual->sigt;
-
-    int tipo = rand() % 5; // seleccionar problema aleatorio
-
-    if (actual->problemas[tipo] < 3) {
-      actual->problemas[tipo]++;
-    } else {
-      // Aumentar en los vecinos si ya está en 3
-      for (int v = 0; v < actual->num_vecinos; v++) {
-        if (actual->vecinos[v]->problemas[tipo] < 3)
-          actual->vecinos[v]->problemas[tipo]++;
-      }
-    }
-
-    printf("Problema %s aumentado en %s\n", nombreProblema(tipo),
-           actual->nombre);
-  }
-}
-
-void aplicar_proyecto(Jugador *jugador, Proyecto *proyecto) {
-  Pais *pais = jugador->actual;
-
-  printf("\nAplicando proyecto '%s' en %s...\n", proyecto->nombre,
-         pais->nombre);
-
-  // Cualquier proyecto puede aplicarse a los países afectados
-  for (int i = 0; i < 5; i++) {
-    if (pais->problemas[i] > 0)
-      pais->problemas[i]--;
-  }
-
-  printf(" El proyecto '%s' ha reducido los problemas en %s.\n",
-         proyecto->nombre, pais->nombre);
-
-  mostrar_estado_pais(pais);
-}
-
-unsigned int hash(char *texto, int capacidad) {
-  unsigned int hash = 0;
-  for (int i = 0; texto[i] != '\0'; i++) {
-    hash = 31 * hash + (unsigned char)texto[i]; // hash simple tipo Java
-  }
-  return hash % capacidad;
 }
 
 void mostrar_proyectos(TablaHash *tabla) {
   printf("\n--- PROYECTOS DISPONIBLES ---\n");
-
-  // Array auxiliar para saber qué problemáticas ya se imprimieron
-  char *problematica_impresa[tabla->capacidad * 2]; // suficiente tamaño
-  int num_problematica = 0;
-
   for (int i = 0; i < tabla->capacidad; i++) {
-    Proyecto *actual = tabla->tabla[i];
-    while (actual != NULL) {
-
-      // Revisar si la problemática ya fue impresa
-      int ya_impreso = 0;
-      for (int k = 0; k < num_problematica; k++) {
-        if (strcmp(problematica_impresa[k], actual->problematica) == 0) {
-          ya_impreso = 1;
-          break;
-        }
-      }
-
-      if (!ya_impreso) {
-        // Imprimir encabezado
-        printf("\n[%s]\n", actual->problematica);
-        // Recorrer toda la tabla y listar proyectos de esta problemática
-        for (int j = 0; j < tabla->capacidad; j++) {
-          Proyecto *aux = tabla->tabla[j];
-          while (aux != NULL) {
-            if (strcmp(aux->problematica, actual->problematica) == 0) {
-              printf("• %s\n  Descripción: %s\n  Bibliografía: %s\n\n",
-                     aux->nombre, aux->descripcion,
-                     "https://ejemplo-bibliografia.org"); // temporal
-            }
-            aux = aux->sigt;
-          }
-        }
-        // Guardar problemática como ya impresa
-        problematica_impresa[num_problematica++] = actual->problematica;
-      }
-
-      actual = actual->sigt;
+    Proyecto *p = tabla->tabla[i];
+    while (p) {
+      printf("\n[%s]\n- %s\n  Descripcion: %s\n  Paises: %s\n  Fuente: %s\n",
+             p->problematica, p->nombre, p->descripcion, p->paisesAplicados,
+             p->bibliografia);
+      p = p->sigt;
     }
   }
 }
 
+//----------------------------------------------
+//            FUNCIONES DE JUEGO
+//----------------------------------------------
 void mostrar_estado_pais(Pais *pais) {
-  const char *problemas[5] = {"Inundaciones", "Sequias", "Deforestacion",
-                              "Perdida de biodiversidad",
-                              "Desplazamiento de poblacion"};
-
-  printf("\n=== ESTADO ACTUAL DE %s ===\n", pais->nombre);
-  for (int i = 0; i < 5; i++) {
-    printf("%s: %d\n", problemas[i], pais->problemas[i]);
-  }
-  printf("===============================\n");
+  const char *nombres[] = {"Inundaciones", "Sequias", "Deforestacion",
+                           "Perdida de biodiversidad",
+                           "Desplazamiento de poblacion"};
+  printf("\n=== ESTADO DE %s ===\n", pais->nombre);
+  for (int i = 0; i < 5; i++)
+    printf("%s: %d\n", nombres[i], pais->problemas[i]);
+  printf("=====================\n");
 }
 
-int cantidadPaises(Mapa *mapa) {
-  Pais *pais_actual = mapa->inicio;
-  int contador = 0;
-  while (pais_actual->sigt != NULL) {
-    contador++;
-    pais_actual = pais_actual->sigt;
+void aplicar_proyecto(Jugador *jugador, Proyecto *proyecto) {
+  Pais *pais = jugador->actual;
+  printf("\nAplicando proyecto '%s' en %s...\n", proyecto->nombre,
+         pais->nombre);
+  for (int i = 0; i < 5; i++)
+    if (pais->problemas[i] > 0)
+      pais->problemas[i]--;
+  if (!strstr(proyecto->paisesAplicados, pais->nombre)) {
+    if (strlen(proyecto->paisesAplicados) > 0) {
+      strncat(proyecto->paisesAplicados, ", ",
+              sizeof(proyecto->paisesAplicados) -
+                  strlen(proyecto->paisesAplicados) - 1);
+    }
+    strncat(proyecto->paisesAplicados, pais->nombre,
+            sizeof(proyecto->paisesAplicados) -
+                strlen(proyecto->paisesAplicados) - 1);
   }
 
-  return contador;
+  printf("Proyecto aplicado con exito.\n");
+  mostrar_estado_pais(pais);
+}
+
+void aumentar_problemas(Mapa *mapa) {
+  Pais *actual;
+  int total = 0;
+
+  actual = mapa->inicio;
+  while (actual) {
+    total++;
+    actual = actual->sigt;
+  }
+
+  if (total < 3)
+    return;
+
+  const char *nombresProblemas[5] = {"Inundaciones", "Sequias", "Deforestacion",
+                                     "Perdida de biodiversidad",
+                                     "Desplazamiento de poblacion"};
+
+  for (int i = 0; i < 3; i++) {
+    int n = rand() % total;
+    actual = mapa->inicio;
+    for (int j = 0; j < n; j++)
+      actual = actual->sigt;
+
+    int tipo = rand() % 5;
+
+    if (actual->problemas[tipo] < 3) {
+      actual->problemas[tipo]++;
+      printf("\nProblema %s aumentado en %s\n", nombresProblemas[tipo],
+             actual->nombre);
+    } else {
+      for (int v = 0; v < actual->num_vecinos; v++) {
+        if (actual->vecinos[v]->problemas[tipo] < 3) {
+          actual->vecinos[v]->problemas[tipo]++;
+          printf("\nProblema %s aumentado en %s (vecino de %s)\n",
+                 nombresProblemas[tipo], actual->vecinos[v]->nombre,
+                 actual->nombre);
+        }
+      }
+    }
+  }
+}
+
+void turno_jugador(Jugador *jugador, TablaHash *tabla, Mapa *mapa) {
+  int acciones = 4;
+  while (acciones > 0) {
+    printf("\nTurno de %s (%s) : Quedan %d acciones.\n", jugador->nombre,
+           jugador->actual->nombre, acciones);
+    printf("1. Moverse\n2. Consultar pais\n3. Aplicar proyecto\nOpcion: ");
+    int op;
+    scanf("%d", &op);
+    if (op == 1) {
+      mover_jugador(jugador);
+      acciones--;
+    } else if (op == 2) {
+      mostrar_estado_pais(jugador->actual);
+    } else if (op == 3) {
+      mostrar_proyectos(tabla);
+      char nombreP[100];
+      printf("Ingrese el nombre del proyecto: ");
+      scanf(" %[^\n]", nombreP);
+      Proyecto *p = buscar_proyecto(tabla, nombreP);
+      if (p)
+        aplicar_proyecto(jugador, p);
+      else
+        printf("Proyecto no encontrado.\n");
+      acciones--;
+    }
+  }
 }
 
 int ganar(Mapa *mapa) {
-  Pais *pais_actual = mapa->inicio;
-  int contador = 0;
-  while (pais_actual->sigt != NULL) {
-    for (int i = 0; i < 5; i++) {
-      if (pais_actual->problemas[i] == 0) {
-        contador++;
-        break;
-      }
+  int problematicaActual = 0;
+  int cantidadDePaises = cantidad_paises(mapa);
+  for (int i = 0; i < 5; i++) {
+    problematicaActual = 0;
+    for (Pais *p = mapa->inicio; p; p = p->sigt) {
+      if (p->problemas[i] <= 0)
+        problematicaActual++;
     }
-    pais_actual = pais_actual->sigt;
+    if (problematicaActual >= cantidadDePaises) {
+      printf(
+          "\n¡Ganaste! Se erradico un aspecto de la problematica en todos los "
+          "paises de la region.\n");
+      return 1;
+    }
   }
-
-  int cantidad_paises = cantidadPaises(mapa);
-  if (contador >= cantidad_paises) {
-    printf("Ganaste, lograste solucionar un aspecto en todos los paises.");
-    return 1;
-  }
-
   return 0;
 }
 
 int perder(Mapa *mapa) {
-  int cantidad_paises = cantidadPaises(mapa);
-
-  if (cantidad_paises <= 3) {
-    printf("Perdiste, quedaron menos de 3 paises.");
+  if (cantidad_paises(mapa) <= 3) {
+    printf("\nPerdiste. Quedan menos de 3 paises.\n");
     return 1;
   }
-
   return 0;
 }

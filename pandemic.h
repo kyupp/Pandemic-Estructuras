@@ -4,15 +4,17 @@
 //---------------------------------------------------
 //                  Estructuras
 //---------------------------------------------------
+
 // Estructura que representa un país
 typedef struct Pais {
   char nombre[50];
   struct Pais *sigt;     // Siguiente país en la lista
   struct Pais *ant;      // País anterior en la lista
-  struct Pais **vecinos; // Vecinos
+  struct Pais **vecinos; // Lista de vecinos
   int num_vecinos;       // Cantidad de vecinos
-  int problemas[5]; // 0: Inundaciones, 1: Sequias, 2: Deforestacion, 3: Perdida
-                    // de biodiversidad, 4: Desplazamiento poblacional
+  int problemas[5];      // 0: Inundaciones, 1: Sequias, 2: Deforestacion,
+                         // 3: Perdida de biodiversidad, 4: Desplazamiento
+                         // poblacional
 } Pais;
 
 // Estructura que representa el mapa (lista doblemente enlazada)
@@ -29,12 +31,13 @@ typedef struct Jugador {
 
 typedef enum { MEJORAR, EMPEORAR } TipoAccion;
 
-// Estructura proyecto
+// Estructura Proyecto
 typedef struct Proyecto {
   char nombre[100];
-  char descripcion[300];
+  char descripcion[400];
   char paisesAplicados[200];
-  char problematica[50];
+  char problematica[60];
+  char bibliografia[300];
   TipoAccion tipo;
   struct Proyecto *sigt;
 } Proyecto;
@@ -49,46 +52,45 @@ typedef struct TablaHash {
 //-----------------------------------------------
 //            Prototipos
 //-----------------------------------------------
-// Prototipos Mapa
+
+// Mapa
 Pais *crear_pais(char nombre[]);
 Mapa *crear_mapa();
 void agregar_pais(Mapa *mapa, char nombre[]);
+void eliminar_pais(Mapa *mapa);
 Pais *buscar_pais(Mapa *mapa, char nombre[]);
 void agregar_vecino(Pais *pais, Pais *vecino);
 void imprimir_mapa(Mapa *mapa);
-void imprimir_vecinos(Pais *pais);
-Pais **asignar_problemas(Mapa *mapa); // devuelve los 9 países seleccionados
+Pais **asignar_problemas(Mapa *mapa);
 void imprimir_problemas_seleccionados(Pais **seleccionados, int n);
-int cantidadPaises(Mapa *mapa);
+int cantidad_paises(Mapa *mapa);
 
-// Prototipos Jugador
+// Jugador
 Jugador *crear_jugador(char nombre[], Pais *paisActual);
 void mover_jugador(Jugador *jugador);
 
-// Prototipos Proyecto
+// Proyecto
 Proyecto *crear_proyecto(char *nombre, char *descripcion, TipoAccion tipo,
-                         char *paisesAplicados);
+                         char *paisesAplicados, char *problematica,
+                         char *bibliografia);
+void aplicar_proyecto(Jugador *jugador, Proyecto *proyecto);
 
-// Prototipos Hash
+// Tabla Hash
 TablaHash *crear_tabla(int capacidad);
 void redimensionar_tabla(TablaHash *tabla);
-void aplicar_proyecto(Jugador *jugador, Proyecto *proyecto);
-void imprimir_tabla_hash(TablaHash *tabla);
-
-// Versión de hash con llave de texto
-unsigned int hash(char *clave, int capacidad);
 void insertar_proyecto_texto(TablaHash *tabla, char *clave, Proyecto *proyecto);
 Proyecto *buscar_proyecto(TablaHash *tabla, char *nombreProyecto);
+void imprimir_tabla_hash(TablaHash *tabla);
+unsigned int hash(char *clave, int capacidad);
 
-// Funciones de Juego
+// Juego
 void turno_jugador(Jugador *jugador, TablaHash *tabla, Mapa *mapa);
 void aumentar_problemas(Mapa *mapa);
 void mostrar_estado_pais(Pais *pais);
 void mostrar_proyectos(TablaHash *tabla);
 
-// Comprobaciones Ganar - Perder
+// Comprobaciones
 int ganar(Mapa *mapa);
 int perder(Mapa *mapa);
-void paisPerdido(Mapa *mapa);
 
 #endif
