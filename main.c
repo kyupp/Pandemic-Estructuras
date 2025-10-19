@@ -263,7 +263,7 @@ int main() {
   //                   INICIO DEL JUEGO
   //-----------------------------------------------------
   printf("\n=== INICIO DEL JUEGO ===\n");
-
+  prueba_eliminacion(mapa);
   int turno = 0;
   while (!ganar(mapa) && !perder(mapa)) {
     printf("\n===== TURNO %d =====\n", turno);

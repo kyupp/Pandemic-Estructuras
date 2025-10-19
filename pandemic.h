@@ -93,4 +93,7 @@ void mostrar_proyectos(TablaHash *tabla);
 int ganar(Mapa *mapa);
 int perder(Mapa *mapa);
 
+// Pruebas
+void prueba_eliminacion(Mapa *mapa);
+
 #endif

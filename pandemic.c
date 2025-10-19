@@ -459,3 +459,36 @@ int perder(Mapa *mapa) {
   }
   return 0;
 }
+
+void prueba_eliminacion(Mapa *mapa) {
+  Pais *actual = mapa->inicio;
+  int total = cantidad_paises(mapa);
+  int limite = total - 4; // Dejamos 4 países sin tocar
+  int contador = 0;
+
+  printf("\n--- FUNCION DE PRUEBA: ESTABLECIENDO PROBLEMAS EN 3 ---\n");
+
+  while (actual) {
+    if (contador < limite) {
+      // Forzamos todos los problemas a nivel 3 solo para los primeros países
+      for (int i = 0; i < 5; i++)
+        actual->problemas[i] = 3;
+    }
+    // Los últimos 4 países se dejan tal como están, sin modificar
+    contador++;
+    actual = actual->sigt;
+  }
+
+  printf("Se establecieron todos los aspectos en 3 en %d paises.\n", limite);
+
+  // Ahora eliminamos los paises que cumplieron la condicion
+  eliminar_pais(mapa);
+
+  // Mostramos los paises que quedaron
+  printf("\nPaises restantes despues de la eliminacion:\n");
+  actual = mapa->inicio;
+  while (actual) {
+    printf("- %s\n", actual->nombre);
+    actual = actual->sigt;
+  }
+}
