@@ -197,7 +197,11 @@ void mover_jugador(Jugador *jugador) {
 
   int opcion = 0;
   printf("Seleccione opcion: ");
-  scanf("%d", &opcion);
+  while (scanf("%d", &opcion) != 1) {
+    printf("Por favor, ingrese un entero: ");
+    while (getchar() != '\n')
+      ;
+  }
   if (opcion == 1 && actual->ant)
     jugador->actual = actual->ant;
   else if (opcion == 2 && actual->sigt)
@@ -404,7 +408,11 @@ void turno_jugador(Jugador *jugador, TablaHash *tabla, Mapa *mapa) {
            jugador->actual->nombre, acciones);
     printf("1. Moverse\n2. Consultar pais\n3. Aplicar proyecto\nOpcion: ");
     int op;
-    scanf("%d", &op);
+    while (scanf("%d", &op) != 1) {
+      printf("Por favor, ingrese un entero: ");
+      while (getchar() != '\n')
+        ;
+    }
     if (op == 1) {
       mover_jugador(jugador);
       acciones--;
