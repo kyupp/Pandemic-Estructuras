@@ -424,11 +424,12 @@ void turno_jugador(Jugador *jugador, TablaHash *tabla, Mapa *mapa) {
       printf("Ingrese el nombre del proyecto: ");
       scanf(" %[^\n]", nombreP);
       Proyecto *p = buscar_proyecto(tabla, nombreP);
-      if (p)
+      if (p) {
         aplicar_proyecto(jugador, p);
-      else
+        acciones--;
+      } else {
         printf("Proyecto no encontrado.\n");
-      acciones--;
+      }
     }
   }
 }
